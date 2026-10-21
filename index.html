@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DM Local — Download Manager Ringan</title>
+<meta name="description" content="Download manager ringan dengan extension Chrome. Seperti IDM, tapi milikmu sendiri: tanpa install, tanpa iklan, tanpa telemetri. YouTube/TikTok/X, jeda-lanjut, resume otomatis.">
+<style>
+  :root {
+    --bg: #0a0b0f; --bg2: #0f1117; --card: #12141b; --line: #1e2230;
+    --fg: #e8eaf0; --mut: #9aa3b2; --dim: #6b7484;
+    --acc: #3b82f6; --acc2: #60a5fa; --ok: #34d399; --err: #f87171; --warn: #fbbf24;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--acc2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- nav ---- */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(10,11,15,.8); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; gap: 24px; height: 58px; }
+  .logo { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; color: var(--fg); }
+  .logo .mark {
+    width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--acc), #7c3aed); font-size: 14px;
+  }
+  .nav nav { margin-left: auto; display: flex; gap: 20px; font-size: 14px; }
+  .nav nav a { color: var(--mut); }
+  .nav nav a:hover { color: var(--fg); text-decoration: none; }
+  .btn-sm {
+    padding: 7px 14px; border-radius: 8px; background: var(--acc); color: #fff !important;
+    font-weight: 600; font-size: 13px; border: 1px solid var(--acc);
+  }
+  .btn-sm:hover { background: var(--acc2); border-color: var(--acc2); text-decoration: none; }
+
+  /* ---- hero ---- */
+  .hero { padding: 84px 0 56px; text-align: center; position: relative; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(600px 300px at 50% -40px, rgba(59,130,246,.16), transparent 70%);
+  }
+  .eyebrow {
+    display: inline-block; font-size: 12.5px; color: var(--acc2);
+    background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25);
+    padding: 5px 12px; border-radius: 99px; margin-bottom: 22px; font-family: var(--mono);
+  }
+  h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.06; margin: 0 0 18px; letter-spacing: -.02em; }
+  h1 .grad {
+    background: linear-gradient(100deg, #fff 10%, var(--acc2) 55%, #a78bfa 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: clamp(16px, 2vw, 19px); color: var(--mut); max-width: 640px; margin: 0 auto 32px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 26px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px;
+    border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer;
+    transition: .15s;
+  }
+  .btn-pri { background: var(--acc); border: 1px solid var(--acc); color: #fff; }
+  .btn-pri:hover { background: var(--acc2); border-color: var(--acc2); text-decoration: none; transform: translateY(-1px); }
+  .btn-sec { background: var(--card); border: 1px solid var(--line); color: var(--fg); }
+  .btn-sec:hover { border-color: var(--acc); text-decoration: none; transform: translateY(-1px); }
+  .rec { font-size: 11px; color: var(--bg); background: var(--ok); padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    font-size: 12.5px; color: var(--mut); background: var(--card);
+    border: 1px solid var(--line); padding: 5px 11px; border-radius: 99px;
+  }
+  .badge b { color: var(--fg); font-weight: 600; }
+
+  /* ---- screenshot ---- */
+  .shot { padding: 20px 0 64px; }
+  .browser {
+    max-width: 560px; margin: 0 auto; border: 1px solid var(--line);
+    border-radius: 12px; overflow: hidden; background: var(--bg2);
+    box-shadow: 0 30px 70px -30px rgba(0,0,0,.9);
+  }
+  .chrome { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #16181f; border-bottom: 1px solid var(--line); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .addr { flex: 1; font-family: var(--mono); font-size: 11.5px; color: var(--dim); background: #0d0f14; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+  .browser img { display: block; width: 100%; }
+
+  /* ---- sections ---- */
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .kicker { font-family: var(--mono); font-size: 12px; color: var(--acc2); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 4vw, 34px); margin: 0 0 14px; letter-spacing: -.01em; }
+  .lead { color: var(--mut); max-width: 700px; margin: 0 0 34px; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px;
+    transition: .15s;
+  }
+  .card:hover { border-color: #2c3244; transform: translateY(-2px); }
+  .card .ico { font-size: 22px; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card p { margin: 0; color: var(--mut); font-size: 14px; }
+  .card code { font-family: var(--mono); font-size: 12.5px; color: var(--acc2); background: rgba(59,130,246,.08); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---- steps ---- */
+  .steps { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .step .n { font-family: var(--mono); font-size: 13px; color: var(--acc2); margin-bottom: 10px; }
+  .step h3 { margin: 0 0 8px; font-size: 15.5px; }
+  .step p { margin: 0; color: var(--mut); font-size: 13.5px; }
+  .step code { font-family: var(--mono); font-size: 12px; color: var(--acc2); background: rgba(59,130,246,.08); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---- security ---- */
+  .sec { display: grid; gap: 28px; grid-template-columns: 1fr 1fr; align-items: center; }
+  @media (max-width: 780px) { .sec { grid-template-columns: 1fr; } }
+  .term {
+    background: #080a0e; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+  }
+  .term .tbar { padding: 8px 14px; background: #11131a; border-bottom: 1px solid var(--line); color: var(--dim); font-size: 11px; }
+  .term pre { margin: 0; padding: 16px 18px; overflow-x: auto; color: #c9d1dc; }
+  .term .g { color: var(--ok); } .term .b { color: var(--acc2); } .term .y { color: var(--warn); }
+  .checks { display: grid; gap: 10px; }
+  .check { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; }
+  .check .ck { color: var(--ok); flex: none; font-weight: 700; }
+  .check div span { display: block; color: var(--mut); font-size: 13.5px; }
+
+  /* ---- table ---- */
+  .tbl-wrap { overflow-x: auto; margin-top: 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; color: var(--dim); letter-spacing: .08em; }
+  td .label { color: var(--dim); }
+  .dm, .dm .label { color: var(--acc2); font-weight: 600; }
+  .idm { color: #c4b5ff; font-weight: 600; }
+  .yes { color: var(--ok); font-weight: 700; }
+  .no { color: var(--dim); }
+  tr:last-child td { border-bottom: none; }
+  .foot { font-family: var(--mono); font-size: 12px; color: var(--dim); padding: 12px 16px; }
+
+  /* ---- download ---- */
+  .dl { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .dl-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px;
+    display: flex; flex-direction: column; gap: 10px; position: relative;
+  }
+  .dl-card.hot { border-color: rgba(59,130,246,.5); }
+  .dl-card .tag { position: absolute; top: -11px; left: 20px; font-size: 11px; font-weight: 700; background: var(--ok); color: #06231a; padding: 3px 9px; border-radius: 6px; }
+  .dl-card h3 { margin: 6px 0 0; font-size: 19px; }
+  .dl-card .sz { font-family: var(--mono); color: var(--dim); font-size: 12.5px; }
+  .dl-card p { margin: 0; color: var(--mut); font-size: 14px; }
+  .dl-card .btn { justify-content: center; margin-top: auto; }
+
+  /* ---- faq ---- */
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 15px 18px; }
+  details + details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; float: right; color: var(--acc2); font-family: var(--mono); }
+  details[open] summary::after { content: "–"; }
+  details p { margin: 12px 0 0; color: var(--mut); font-size: 14px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--dim); font-size: 13px; }
+  footer .wrap { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; }
+
+  @media (max-width: 640px) {
+    .nav nav { display: none; }
+    .hero { padding: 56px 0 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">⬇</span> DM Local</div>
+    <nav>
+      <a href="#fitur">Fitur</a>
+      <a href="#banding">Perbandingan</a>
+      <a href="#pakai">Cara pakai</a>
+      <a href="#aman">Keamanan</a>
+      <a href="#unduh">Unduh</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn-sm" href="#unduh">Unduh</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">v1.0 · open source · gratis</span>
+      <h1>Download manager<br><span class="grad">seperti IDM, milikmu sendiri.</span></h1>
+      <p class="sub">
+        Tanpa install. Tanpa iklan. Tanpa telemetri. Tinggal ekstrak, jalan, pakai.
+        Download file cepat dengan 8 koneksi, plus YouTube / TikTok / X dengan pilihan kualitas.
+      </p>
+      <div class="cta">
+        <a class="btn btn-pri" href="dm-full.zip">⬇ Unduh dm-full.zip <span class="rec">REKOMENDASI</span></a>
+        <a class="btn btn-sec" href="#unduh">Lihat pilihan lain</a>
+      </div>
+      <div class="badges">
+        <span class="badge"><b>67 MB</b> · sekali ekstrak</span>
+        <span class="badge"><b>Windows</b> · 10 / 11</span>
+        <span class="badge"><b>Chrome / Edge</b> · extension</span>
+        <span class="badge"><b>0</b> iklan &amp; telemetri</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOT -->
+  <section class="shot">
+    <div class="wrap">
+      <div class="browser">
+        <div class="chrome">
+          <span class="dot" style="background:#ff5f57"></span>
+          <span class="dot" style="background:#febc2e"></span>
+          <span class="dot" style="background:#28c840"></span>
+          <span class="addr">chrome-extension://dm-local/popup.html</span>
+        </div>
+        <img src="assets/popup.png" alt="Popup DM Local: daftar download dengan progress bar, tombol jeda/batal, dan daftar file selesai">
+      </div>
+    </div>
+  </section>
+
+  <!-- FITUR -->
+  <section id="fitur">
+    <div class="wrap">
+      <div class="kicker">Fitur</div>
+      <h2>Yang penting, dikerjakan dengan benar.</h2>
+      <p class="lead">Bukan kumpulan fitur setengah jadi. Ini alat yang fokus: download cepat, bisa dijeda, bisa dilanjutkan, dan aman.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="ico">⚡</div>
+          <h3>8 koneksi paralel</h3>
+          <p>File dipecah dan diunduh bersamaan. Untuk server yang mengizinkan range request, kecepatan naik drastis.</p>
+        </div>
+        <div class="card">
+          <div class="ico">⏸</div>
+          <h3>Jeda &amp; lanjut</h3>
+          <p>Berhenti kapan saja, lanjutkan dari titik terakhir. Tidak perlu mengulang dari nol.</p>
+        </div>
+        <div class="card">
+          <div class="ico">🔄</div>
+          <h3>Resume otomatis</h3>
+          <p>Putus di tengah? Klik <b>Lanjut</b> — dilanjutkan dari byte terakhir, dan URL di-refresh otomatis kalau sudah kedaluwarsa. Seperti refresh address di IDM.</p>
+        </div>
+        <div class="card">
+          <div class="ico">📱</div>
+          <h3>YouTube / TikTok / X</h3>
+          <p>Tempel link, pilih kualitas: <code>Auto</code>, <code>1080p</code>, <code>720p</code>, <code>480p</code>, atau <code>Audio saja</code>. Video + audio digabung otomatis.</p>
+        </div>
+        <div class="card">
+          <div class="ico">📁</div>
+          <h3>Buka folder langsung</h3>
+          <p>Tombol 📁 di popup membuka folder download dan memunculkannya di depan — tidak mengganggu tab browser.</p>
+        </div>
+        <div class="card">
+          <div class="ico">🛡</div>
+          <h3>Hapus list ≠ hapus file</h3>
+          <p>Menghapus dari daftar hanya membersihkan tampilan. File yang sudah terdownload tetap aman di folder.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BANDINGKAN -->
+  <section id="banding">
+    <div class="wrap">
+      <div class="kicker">Perbandingan</div>
+      <h2>DM Local vs IDM — jujur, mana yang cocok?</h2>
+      <p class="lead">
+        Bukan klonaan pas-pasan. DM Local punya kelebihan tersendiri, tapi IDM tetap lebih lengkap di beberapa hal. Pilih yang pas kebutuhanmu.
+      </p>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th style="text-align:center">#</th><th>DIMOWAIOKAN</th><th>DM Local</th><th>IDM</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="label">Harga</td><td style="text-align:center">1</td><td><b class="dm">Gratis</b></td><td><b class="idm">$25/tahun</b></td></tr>
+            <tr><td class="label">Keamanan / privasi</td><td style="text-align:center">2</td><td><b class="dm">localhost-only</b><td><b class="idm">native + analytics</td></tr>
+            <tr><td class="label">Telemetry</td><td style="text-align:center">3</td><td><b class="dm">nol data kirim</b></td><td><b class="idm">mengumpulkan statistik</b></td></tr>
+            <tr><td class="label">Segmented download</td><td style="text-align:center">4</td><td class="dm"><span class="yes">✓ 8 koneksi</span></td><td class="idm"><span class="yes">✓ multi-koneksi</span></td></tr>
+            <tr><td class="label">Resume otomatis</td><td style="text-align:center">5</td><td class="dm"><span class="yes">✓ refresh URL otomatis</span></td><td class="idm"><span class="no">— refresh manual</span></td></tr>
+            <tr><td class="label">YouTube / TikTok / X</td><td style="text-align:center">6</td><td class="dm"><span class="yes">✓ pilih kualitas</span></td><td class="idm"><span class="no">✗ butuh add-on</span></td></tr>
+            <tr><td class="label">Chrome / Edge popup</td><td style="text-align:center">7</td><td class="dm"><span class="yes">✓ 1 klik dari extension</span></td><td class="idm"><span class="no">— deteksi halaman</span></td></tr>
+            <tr><td class="label">Installer</td><td style="text-align:center">8</td><td class="dm"><span class="yes">✓ zip ekstrak, tidak install</span></td><td class="idm"><span class="no">— installer .exe</span></td></tr>
+            <tr><td class="label">Catatan / riwayat</td><td style="text-align:center">9</td><td class="dm"><span class="yes">✓ list muncul di popup, hilang otomatis</span></td><td class="idm"><span class="no">— riwayat tersimpan permanen</span></td></tr>
+            <tr><td class="label">Ukuran paket</td><td style="text-align:center">10</td><td><b class="dm">67 MB (full)</b></td><td><b class="idm">~89 MB</b></td></tr>
+          </tbody>
+          <tfoot><tr><td colspan="4" class="foot">Pilih DM Local: mau yang gratis, ringan, dan yang tidak perlu diajari pakai — cocok dibagikan ke temen. Pilih IDM: mau dukungan platform lengkap (Mac/Android/Linux), fitur torrent, dan support resmi.</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARA PAKAI -->
+  <section id="pakai">
+    <div class="wrap">
+      <div class="kicker">Cara pakai</div>
+      <h2>Siap dalam 3 langkah.</h2>
+      <p class="lead">Tidak ada installer, tidak ada wizard, tidak ada "next-next-finish".</p>
+      <div class="steps">
+        <div class="step">
+          <div class="n">LANGKAH 1</div>
+          <h3>Ekstrak &amp; jalan</h3>
+          <p>Ekstrak zip ke folder mana saja, lalu klik dua kali <code>1_JALANKAN_SERVER.bat</code>. Jendela hitam terbuka dan menampilkan token. Biarkan terbuka.</p>
+        </div>
+        <div class="step">
+          <div class="n">LANGKAH 2</div>
+          <h3>Muat extension</h3>
+          <p>Buka <code>chrome://extensions</code>, aktifkan <b>Mode pengembang</b>, klik <b>Muat yang belum dipaketkan</b>, pilih folder <code>extension</code>.</p>
+        </div>
+        <div class="step">
+          <div class="n">LANGKAH 3</div>
+          <h3>Tempel token</h3>
+          <p>Klik ikon puzzle → DM Local → <b>Pengaturan</b> → tempel token dari jendela server. Selesai. Klik download apa pun akan dialihkan ke DM.</p>
+        </div>
+      </div>
+      <p style="margin-top:22px;color:var(--mut);font-size:14px">
+        Tidak mau pakai extension? Klik dua kali <code>2_UNDUH_FILE.bat</code> dan tempel URL langsung.
+      </p>
+    </div>
+  </section>
+
+  <!-- KEAMANAN -->
+  <section id="aman">
+    <div class="wrap">
+      <div class="kicker">Keamanan</div>
+      <h2>Amanan? Ini buktinya.</h2>
+      <p class="lead">Server hanya mendengarkan di <code>127.0.0.1</code> — tidak bisa diakses dari jaringan atau internet. Token mencegah program lain di komputermu menitipkan download.</p>
+      <div class="sec">
+        <div class="checks">
+          <div class="check"><span class="ck">✓</span><div><b>Localhost only</b><span>Tidak terbuka ke LAN atau internet. Fisik server-nya di mesinmu sendiri.</span></div></div>
+          <div class="check"><span class="ck">✓</span><div><b>Token + origin allowlist</b><span>Setiap permintaan wajib header token, dan origin extension dicek.</span></div></div>
+          <div class="check"><span class="ck">✓</span><div><b>Tidak menyentuh sistem</b><span>Tidak ada registry, startup, service, atau perubahan boot.</span></div></div>
+          <div class="check"><span class="ck">✓</span><div><b>Nol telemetri</b><span>Tidak ada pengiriman data ke internet sama sekali.</span></div></div>
+          <div class="check"><span class="ck">✓</span><div><b>Path traversal dicegah</b><span>Nama file berisi <code>../</code> ditolak. Tidak bisa menulis ke luar folder download.</span></div></div>
+          <div class="check"><span class="ck">✓</span><div><b>Self-test tersedia</b><span>Klik <code>6_UJI_KEAMANAN.bat</code> untuk membuktikan sendiri apa yang dilakukan kode ini.</span></div></div>
+        </div>
+        <div class="term">
+          <div class="tbar">terminal — uji keamanan</div>
+          <pre><span class="g">$</span> 6_UJI_KEAMANAN.bat
+
+<span class="b">[1]</span> membuat umpan palsu di luar folder...
+<span class="b">[2]</span> mencoba menulis ke luar folder...
+     <span class="y">DITOLAK</span> — path traversal dicegah
+<span class="b">[3]</span> memeriksa pengiriman data keluar...
+     <span class="g">BERSIH</span> — tidak ada telemetri
+
+<span class="g">Semua uji lulus.</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UNDUH -->
+  <section id="unduh">
+    <div class="wrap">
+      <div class="kicker">Unduh</div>
+      <h2>Pilih satu.</h2>
+      <p class="lead">Keduanya alat yang sama. Bedanya hanya ffmpeg — penentu bisa tidaknya gabung video YouTube.</p>
+      <div class="dl">
+        <div class="dl-card hot">
+          <span class="tag">PALING LENGKAP</span>
+          <h3>dm-full.zip</h3>
+          <div class="sz">67 MB · termasuk ffmpeg</div>
+          <p>Semua fitur langsung jalan. YouTube 1080p/720p langsung bisa, tidak perlu download tambahan. <b>Pilih ini kalau ingin langsung pakai.</b></p>
+          <a class="btn btn-pri" href="dm-full.zip">⬇ Unduh dm-full.zip</a>
+        </div>
+        <div class="dl-card">
+          <h3>dm-clean.zip</h3>
+          <div class="sz">29 MB · tanpa ffmpeg</div>
+          <p>Download file biasa saja (HTTP/HTTPS). Untuk YouTube, perlu jalankan <code>tools\download_ffmpeg.bat</code> dulu — sekali saja, ~110 MB.</p>
+          <a class="btn btn-sec" href="dm-clean.zip">⬇ Unduh dm-clean.zip</a>
+        </div>
+      </div>
+      <p style="margin-top:20px;color:var(--dim);font-size:13px">
+        SmartScreen mungkin memblokir file .bat — itu karena belum ditandatangani digital, bukan karena virus. Klik "More info" → "Run anyway". Ragu? Jalankan <code>6_UJI_KEAMANAN.bat</code> dulu.
+      </p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="wrap">
+      <div class="kicker">FAQ</div>
+      <h2>Pertanyaan umum.</h2>
+      <div style="margin-top:22px;max-width:760px">
+        <details>
+          <summary>Apakah aman dibagikan ke teman?</summary>
+          <p>Ya. Server hanya di localhost, butuh token, dan origin extension dicek. Tidak bisa diakses dari luar mesin. Setiap teman menjalankan server masing-masing di komputernya.</p>
+        </details>
+        <details>
+          <summary>Kenapa harus buka server dulu? IDM kan tidak perlu.</summary>
+          <p>IDM adalah aplikasi native yang berjalan di dalam Windows. DM Local adalah extension Chrome, dan extension tidak boleh menjalankan proses berat. Jadi server lah yang mengerjakan download — extension hanya memberi perintah dan menampilkan progres. Itu juga alasan keamanannya bagus: semua berlaku di mesinmu.</p>
+        </details>
+        <details>
+          <summary>Apakah file yang sudah diunduh ikut terhapus kalau dihapus dari daftar?</summary>
+          <p>Tidak. Hapus dari daftar hanya membersihkan tampilan. File tetap ada di folder download.</p>
+        </details>
+        <details>
+          <summary>Kenapa ukurannya besar?</summary>
+          <p>Karena ffmpeg (~101 MB) untuk menggabung video dan audio YouTube. Tidak ada build ffmpeg yang lebih kecil. Itulah mengapa ada versi <b>clean</b> tanpa ffmpeg.</p>
+        </details>
+        <details>
+          <summary>Kalau download putus di tengah, bisa dilanjutkan?</summary>
+          <p>Bisa. Klik tombol ⚡ Lanjut — dilanjutkan dari byte terakhir. Kalau URL-nya sudah kedaluwarsa, DM otomatis me-refresh alamatnya, seperti fitur refresh download address di IDM.</p>
+        </details>
+        <details>
+          <summary>Apakah ada versi Mac atau Linux?</summary>
+          <p>Belum. Saat ini Windows saja, karena paket Python yang dibundel adalah build Windows. Kode sumbernya terbuka kalau ingin diadaptasi.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>DM Local — proyek belajar, dibuat dari nol. Tidak ada iklan, tidak ada telemetri.</span>
+    <span>Tanpa afiliasi · tanpa akun · tanpa nag.</span>
+  </div>
+</footer>
+
+</body>
+</html>
