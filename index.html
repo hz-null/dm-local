@@ -424,6 +424,10 @@
           <summary>Cara hapus DM Local?</summary>
           <p>Tiga langkah sederhana: (1) tutup jendela server hitam — atau jalankan <code>3_TUTUP_SERVER.bat</code>; (2) hapus folder tempat kamu mengekstrak (Shift+Delete) — DM Local tidak menyentuh registry, startup, service, atau Windows Defender; (3) buka <code>chrome://extensions</code> lalu klik <b>Hapus</b> pada kartu DM Local (bukan cukup non-aktif). Mau pakai satu klik, jalankan <code>7_UNINSTALL.bat</code> di dalam folder DM: ia mematikan server lalu menghapus foldernya sendiri. File hasil download di folder <code>downloads</code> aman — ikut terhapus bersama, atau pindahkan dulu bila ingin disimpan.</p>
         </details>
+        <details>
+          <summary>Nama file jadi <code>_[Kusonime]</code> atau <code>N8wfsjaz</code> — gimana?</summary>
+          <p><b>Fixed</b> pada versi ini. <b>Pixeldrain</b>: tautan <code>/u/</code> (viewer halaman) otomatis dialihkan ke endpoint file asli <code>/api/file/</code>, jadi nama muncul utuh: <code>[Kusonime] Cinta di Malam yang Tenang 1080pV2.rar</code>. <b>Google Drive, berkasdrive.com, dlproxy</b>, dan semua host lain yang kirim <code>Content-Disposition</code> sudah diparse dengan benar — termasuk nama yang ada spasi. Unduh ulang <code>dm-full.zip</code> di bawah ini jika kamu pakai build lama.</p>
+        </details>
       </div>
     </div>
   </section>
